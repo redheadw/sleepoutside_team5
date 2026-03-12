@@ -277,3 +277,27 @@ footer {
   font-weight: bold;
   font-size: 1.25rem;
 }
+
+.cart-card__remove {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 0; 
+  width: 25px;
+  height: 25px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 0;
+}
+
+.cart-card__remove:hover {
+  background-color: var(--primary-color);
+}
+
+.cart-card {
+  position: relative;
+}
