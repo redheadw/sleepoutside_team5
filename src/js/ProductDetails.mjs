@@ -19,8 +19,11 @@ export default class ProductDetails {
   addProductToCart() {
     let cart = getLocalStorage("so-cart");
     if (!Array.isArray(cart)) cart = [];
-    cart.push(this.product);
-    setLocalStorage("so-cart", cart);
+    const exists = cart.some(item => item.id === this.product.id);
+    if (!exists) {
+      cart.push(this.product);
+      setLocalStorage("so-cart", cart);
+    }
   }
 
   renderProductDetails() {
