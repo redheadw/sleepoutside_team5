@@ -17,7 +17,8 @@ export default class ProductDetails {
   }
 
   addProductToCart() {
-    const cart = getLocalStorage("so-cart") || [];
+    let cart = getLocalStorage("so-cart");
+    if (!Array.isArray(cart)) cart = [];
     cart.push(this.product);
     setLocalStorage("so-cart", cart);
   }
