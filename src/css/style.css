@@ -1,3 +1,25 @@
+/* Cart count badge styles */
+#cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #e6a86c;
+  color: #432c5f;
+  font-size: 1rem;
+  font-family: var(--font-headline);
+  font-weight: normal;
+  border-radius: 50%;
+  min-width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+  border: 2px solid #fff;
+  pointer-events: none;
+}
+
 :root {
   --font-body: Arial, Helvetica, sans-serif;
   --font-headline: Haettenschweiler, 'Arial Narrow Bold', sans-serif;
@@ -90,7 +112,7 @@ p {
   margin-top: -1.3em;
 }
 
-.logo--square > div {
+.logo--square>div {
   margin-top: -1.7em;
 }
 
