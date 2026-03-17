@@ -4,9 +4,9 @@ function productCardTemplate(product) {
   return `
     <li class="product-card">
       <a href="/product_pages/index.html?product=${product.Id}">
-        <img src="${product.Image}" alt="${product.Name}" />
-        <h3>${product.Brand}</h3>
-        <h2>${product.Name}</h2>
+        <img src="${product.Images.PrimaryMedium}" alt="${product.NameWithoutBrand}">
+        <h3>${product.Brand.Name}</h3>
+        <h2>${product.NameWithoutBrand}</h2>
         <p>$${product.FinalPrice}</p>
       </a>
     </li>
@@ -21,7 +21,7 @@ export default class ProductList {
   }
 
   async init() {
-    const list = await this.dataSource.getData();
+    const list = await this.dataSource.getData(this.category);
     this.renderList(list);
   }
 

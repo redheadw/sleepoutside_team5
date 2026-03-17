@@ -29,7 +29,8 @@ export default class ProductDetails {
       this.product.Brand.Name;
     document.getElementById("productName").textContent =
       this.product.NameWithoutBrand;
-    document.getElementById("productImage").src = this.product.Image;
+    document.getElementById("productImage").src =
+      this.product.Images.PrimaryLarge;
     document.getElementById("productImage").alt =
       this.product.NameWithoutBrand;
     document.getElementById("productPrice").textContent =
