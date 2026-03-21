@@ -1,5 +1,26 @@
 import { getLocalStorage, setLocalStorage } from "./utils.mjs";
 
+function getProductImage(product) {
+  return product.Images?.PrimaryLarge || product.Image;
+}
+
+function getDiscountPercentage(product) {
+  const price = Number(product.price ?? product.FinalPrice);
+  const originalPrice = Number(
+    product.originalPrice ?? product.OriginalPrice ?? product.SuggestedRetailPrice
+  );
+
+  if (
+    !Number.isFinite(price) ||
+    !Number.isFinite(originalPrice) ||
+    originalPrice <= price
+  ) {
+    return 0;
+  }
+
+  return Math.round(((originalPrice - price) / originalPrice) * 100);
+}
+
 export default class ProductDetails {
   constructor(productId, dataSource) {
     this.productId = productId;
@@ -33,11 +54,13 @@ export default class ProductDetails {
   }
 
   renderProductDetails() {
+    const discountPercentage = getDiscountPercentage(this.product);
+
     document.getElementById("productBrand").textContent =
       this.product.Brand.Name;
     document.getElementById("productName").textContent =
       this.product.NameWithoutBrand;
-    document.getElementById("productImage").src = this.product.Image;
+    document.getElementById("productImage").src = getProductImage(this.product);
     document.getElementById("productImage").alt =
       this.product.NameWithoutBrand;
     document.getElementById("productPrice").textContent =
@@ -46,6 +69,11 @@ export default class ProductDetails {
       this.product.Colors[0].ColorName;
     document.getElementById("productDescription").innerHTML =
       this.product.DescriptionHtmlSimple;
+    document.getElementById("productDiscountBadge").textContent =
+      `${discountPercentage}% OFF`;
+    document
+      .getElementById("productDiscountBadge")
+      .classList.toggle("hide", discountPercentage <= 0);
 
     document.getElementById("addToCart").dataset.id = this.product.Id;
     document.title = `Sleep Outside | ${this.product.Name}`;
