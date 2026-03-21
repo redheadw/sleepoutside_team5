@@ -1,8 +1,19 @@
 import { getLocalStorage, setLocalStorage, loadHeaderFooter } from "./utils.mjs";
 import ProductData from "./ProductData.mjs";
 
-const dataSource = new ProductData("tents");
 const MAX_QTY_PER_ITEM = 200;
+const dataSources = {};
+
+function getDataSource(category = "tents") {
+  if (!dataSources[category]) {
+    dataSources[category] = new ProductData(category);
+  }
+  return dataSources[category];
+}
+
+function getProductImage(product) {
+  return product.Images?.PrimaryMedium || product.Image;
+}
 
 async function initCartPage() {
   await loadHeaderFooter();
@@ -12,17 +23,40 @@ async function initCartPage() {
 async function getCartContents() {
   let cart = getLocalStorage("so-cart");
   if (!Array.isArray(cart)) cart = [];
-  let cartItems = await Promise.all(cart.map(item => {
-    return dataSource.findProductById(item.productId);
-  }));
-  return cartItems.filter(cart => !!cart);
+  const cartItems = await Promise.all(
+    cart.map(async (item) => {
+      const category = item.category || "tents";
+      const product = await getDataSource(category).findProductById(
+        item.productId,
+        category
+      );
+
+      if (!product) {
+        return null;
+      }
+
+      return {
+        product,
+        cartItem: item
+      };
+    })
+  );
+  const validCartItems = cartItems.filter((item) => !!item);
+
+  if (validCartItems.length !== cart.length) {
+    const cleanedCart = validCartItems.map((item) => item.cartItem);
+    setLocalStorage("so-cart", cleanedCart);
+  }
+
+  return validCartItems;
 }
 
 async function renderCartContents() {
-  let cart = getLocalStorage("so-cart");
   const cartItems = await getCartContents();
 
-  const htmlItems = cartItems.map((item, index) => cartItemTemplate(item, cart[index]));
+  const htmlItems = cartItems.map((item) =>
+    cartItemTemplate(item.product, item.cartItem)
+  );
   document.querySelector(".product-list").innerHTML = htmlItems.join("");
 
   setupRemoveListeners();
@@ -32,20 +66,23 @@ async function renderCartContents() {
 }
 
 async function updatePrices() {
-  let cart = getLocalStorage("so-cart");
   const cartItems = await getCartContents();
   const cartFooter = document.querySelector(".cart-footer");
-  
-  cartItems.forEach(async (cartItem, index) => {
-    const costElement = document.querySelector(`#_${cartItem.Id} .cart-card__price`);
-    const item = await dataSource.findProductById(cartItem.Id);
-    costElement.textContent = (item.FinalPrice * cart[index].count).toFixed(2);
+
+  cartItems.forEach((item) => {
+    const costElement = document.querySelector(
+      `#_${item.product.Id} .cart-card__price`
+    );
+    costElement.textContent =
+      `$${(item.product.FinalPrice * item.cartItem.count).toFixed(2)}`;
   });
 
   if (cartItems.length > 0) {
     cartFooter.classList.remove("hide");
 
-    const price = cartItems.map((item, index) => item.FinalPrice * cart[index].count);
+    const price = cartItems.map(
+      (item) => item.product.FinalPrice * item.cartItem.count
+    );
     const totalPrice = price.reduce((sum, item) => sum + item, 0);
     const totalElement = document.querySelector(".cart-total");
 
@@ -59,30 +96,33 @@ async function updatePrices() {
 }
 
 function cartItemTemplate(item, inBag) {
+  const category = inBag.category || item.Category || "tents";
   return `
     <li class="cart-card divider" id="_${item.Id}">
-      <a href="/product_pages/index.html?product=${item.Id}" class="cart-card__image">
-        <img src="${item.Image}" alt="${item.Name}" />
+      <a href="/product_pages/index.html?category=${encodeURIComponent(category)}&product=${item.Id}" class="cart-card__image">
+        <img src="${getProductImage(item)}" alt="${item.Name}" />
       </a>
-      <a href="/product_pages/index.html?product=${item.Id}">
+      <a href="/product_pages/index.html?category=${encodeURIComponent(category)}&product=${item.Id}">
         <h2 class="card__name">${item.Name}</h2>
       </a>
       <p class="cart-card__color">${item.Colors[0].ColorName}</p>
-      <p class="cart-card__quantity">qty: <input type="number" name="quantity" value="${inBag.count}" data-id="${item.Id}" min="1" max="${MAX_QTY_PER_ITEM}"></p>
+      <p class="cart-card__quantity">qty: <input type="number" name="quantity" value="${inBag.count}" data-id="${item.Id}" data-category="${category}" min="1" max="${MAX_QTY_PER_ITEM}"></p>
       <p class="cart-card__price">$${(item.FinalPrice * inBag.count).toFixed(2)}</p>
 
-      <button type="button" class="cart-card__remove" data-id="${item.Id}">
+      <button type="button" class="cart-card__remove" data-id="${item.Id}" data-category="${category}">
         X
       </button>
     </li>
   `;
 }
 
-function removeCartItemFromStorage(id) {
+function removeCartItemFromStorage(id, category) {
   let cartItems = getLocalStorage("so-cart");
   if (!Array.isArray(cartItems)) cartItems = [];
 
-  const updatedCart = cartItems.filter(item => item.productId !== id);
+  const updatedCart = cartItems.filter(
+    (item) => !(item.productId === id && (item.category || "tents") === category)
+  );
 
   setLocalStorage('so-cart', updatedCart);
   renderCartContents();
@@ -94,21 +134,30 @@ function setupRemoveListeners() {
   removeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const itemId = button.dataset.id;
-      removeCartItemFromStorage(itemId);
+      const category = button.dataset.category || "tents";
+      removeCartItemFromStorage(itemId, category);
     });
   });
 }
 
-function updateCartItemQuantity(id, count) {
+function updateCartItemQuantity(id, category, count) {
   let cartItems = getLocalStorage("so-cart");
   if (!Array.isArray(cartItems)) cartItems = [];
   
-  cartItems.forEach(item => {
-    if (item.productId !== id) return;
-    item.count = count;
-  })
+  const updatedCartItems = cartItems
+    .map((item) => {
+      if (item.productId !== id || (item.category || "tents") !== category) {
+        return item;
+      }
 
-  setLocalStorage('so-cart', cartItems);
+      return {
+        ...item,
+        count
+      };
+    })
+    .filter((item) => Number.parseInt(item.count, 10) > 0);
+
+  setLocalStorage('so-cart', updatedCartItems);
 }
 
 function setupQuantityChangeListeners() {
@@ -117,6 +166,7 @@ function setupQuantityChangeListeners() {
   quantityInput.forEach((button) => {
     button.addEventListener("change", async () => {
       const itemId = button.dataset.id;
+      const category = button.dataset.category || "tents";
       if (button.value > MAX_QTY_PER_ITEM) {
         button.value = MAX_QTY_PER_ITEM;
       }
@@ -126,7 +176,8 @@ function setupQuantityChangeListeners() {
       if (isNaN(button.value)) {
         button.value = 1;
       }
-      updateCartItemQuantity(itemId, parseInt(button.value));
+      updateCartItemQuantity(itemId, category, parseInt(button.value));
+      await renderCartContents();
       await updatePrices();
     });
   });
