@@ -4,12 +4,30 @@ function getProductImage(product) {
   return product.Images?.PrimaryLarge || product.Image;
 }
 
+function getDiscountPercentage(product) {
+  const price = Number(product.price ?? product.FinalPrice);
+  const originalPrice = Number(
+    product.originalPrice ?? product.OriginalPrice ?? product.SuggestedRetailPrice
+  );
+
+  if (
+    !Number.isFinite(price) ||
+    !Number.isFinite(originalPrice) ||
+    originalPrice <= price
+  ) {
+    return 0;
+  }
+
+  return Math.round(((originalPrice - price) / originalPrice) * 100);
+}
+
 function formatCategory(category) {
   return category
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 }
+
 
 export default class ProductDetails {
   constructor(productId, dataSource) {
@@ -49,6 +67,8 @@ export default class ProductDetails {
   }
 
   renderProductDetails() {
+    const discountPercentage = getDiscountPercentage(this.product);
+
     document.getElementById("productBrand").textContent =
       this.product.Brand.Name;
     document.getElementById("productName").textContent =
@@ -62,6 +82,11 @@ export default class ProductDetails {
       this.product.Colors[0].ColorName;
     document.getElementById("productDescription").innerHTML =
       this.product.DescriptionHtmlSimple;
+    document.getElementById("productDiscountBadge").textContent =
+      `${discountPercentage}% OFF`;
+    document
+      .getElementById("productDiscountBadge")
+      .classList.toggle("hide", discountPercentage <= 0);
 
     document.getElementById("addToCart").dataset.id = this.product.Id;
     document.title = `Sleep Outside | ${formatCategory(this.product.Category || this.dataSource.category)} | ${this.product.Name}`;
