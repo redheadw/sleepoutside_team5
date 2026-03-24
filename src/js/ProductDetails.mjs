@@ -1,5 +1,16 @@
 import { getLocalStorage, setLocalStorage } from "./utils.mjs";
 
+function getProductImage(product) {
+  return product.Images?.PrimaryLarge || product.Image;
+}
+
+function formatCategory(category) {
+  return category
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export default class ProductDetails {
   constructor(productId, dataSource) {
     this.productId = productId;
@@ -20,10 +31,15 @@ export default class ProductDetails {
     let cart = getLocalStorage("so-cart");
     if (!Array.isArray(cart)) cart = [];
     // Prevent duplicate items in the cart!! Don't redo this
-    const item = cart.filter(item => item.productId === this.product.Id);
+    const productCategory = this.product.Category || this.dataSource.category;
+    const item = cart.filter(
+      (item) =>
+        item.productId === this.product.Id && item.category === productCategory
+    );
     if (item.length === 0) {
       cart.push({
         productId: this.product.Id,
+        category: productCategory,
         count: 1
       });
     } else {
@@ -37,7 +53,7 @@ export default class ProductDetails {
       this.product.Brand.Name;
     document.getElementById("productName").textContent =
       this.product.NameWithoutBrand;
-    document.getElementById("productImage").src = this.product.Image;
+    document.getElementById("productImage").src = getProductImage(this.product);
     document.getElementById("productImage").alt =
       this.product.NameWithoutBrand;
     document.getElementById("productPrice").textContent =
@@ -48,6 +64,6 @@ export default class ProductDetails {
       this.product.DescriptionHtmlSimple;
 
     document.getElementById("addToCart").dataset.id = this.product.Id;
-    document.title = `Sleep Outside | ${this.product.Name}`;
+    document.title = `Sleep Outside | ${formatCategory(this.product.Category || this.dataSource.category)} | ${this.product.Name}`;
   }
 }
