@@ -21,6 +21,14 @@ function getDiscountPercentage(product) {
   return Math.round(((originalPrice - price) / originalPrice) * 100);
 }
 
+function formatCategory(category) {
+  return category
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+
 export default class ProductDetails {
   constructor(productId, dataSource) {
     this.productId = productId;
@@ -41,10 +49,15 @@ export default class ProductDetails {
     let cart = getLocalStorage("so-cart");
     if (!Array.isArray(cart)) cart = [];
     // Prevent duplicate items in the cart!! Don't redo this
-    const item = cart.filter(item => item.productId === this.product.Id);
+    const productCategory = this.product.Category || this.dataSource.category;
+    const item = cart.filter(
+      (item) =>
+        item.productId === this.product.Id && item.category === productCategory
+    );
     if (item.length === 0) {
       cart.push({
         productId: this.product.Id,
+        category: productCategory,
         count: 1
       });
     } else {
@@ -76,6 +89,6 @@ export default class ProductDetails {
       .classList.toggle("hide", discountPercentage <= 0);
 
     document.getElementById("addToCart").dataset.id = this.product.Id;
-    document.title = `Sleep Outside | ${this.product.Name}`;
+    document.title = `Sleep Outside | ${formatCategory(this.product.Category || this.dataSource.category)} | ${this.product.Name}`;
   }
 }
