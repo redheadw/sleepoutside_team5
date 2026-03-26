@@ -9,24 +9,29 @@ function renderCartContents() {
   let cartItems = getLocalStorage("so-cart");
   if (!Array.isArray(cartItems)) cartItems = [];
 
+  const cartFooter = document.querySelector(".cart-footer");
+  const productList = document.querySelector(".product-list");
+
+  
+  if (cartItems.length === 0) {
+    productList.innerHTML = "<li>Your cart is empty.</li>";
+    cartFooter.classList.add("hide");
+    return;
+  }
+
+  
   const htmlItems = cartItems.map((item) => cartItemTemplate(item));
-  document.querySelector(".product-list").innerHTML = htmlItems.join("");
+  productList.innerHTML = htmlItems.join("");
 
   setupRemoveListeners();
 
-  const cartFooter = document.querySelector(".cart-footer");
+  cartFooter.classList.remove("hide");
 
-  if (cartItems.length > 0) {
-    cartFooter.classList.remove("hide");
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.FinalPrice, 0);
+  const totalElement = document.querySelector(".cart-total");
 
-    const totalPrice = cartItems.reduce((sum, item) => sum + item.FinalPrice, 0);
-    const totalElement = document.querySelector(".cart-total");
-
-    if (totalElement) {
-      totalElement.textContent = `Total: $${totalPrice.toFixed(2)}`;
-    }
-  } else {
-    cartFooter.classList.add("hide");
+  if (totalElement) {
+    totalElement.textContent = `Total: $${totalPrice.toFixed(2)}`;
   }
 }
 
