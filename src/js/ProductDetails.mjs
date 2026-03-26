@@ -82,11 +82,11 @@ export default class ProductDetails {
       this.product.Colors[0].ColorName;
     document.getElementById("productDescription").innerHTML =
       this.product.DescriptionHtmlSimple;
-    document.getElementById("productDiscountBadge").textContent =
+    
+    const discountBadge = document.getElementById("productDiscountBadge");
+    discountBadge.textContent =
       `${discountPercentage}% OFF`;
-    document
-      .getElementById("productDiscountBadge")
-      .classList.toggle("hide", discountPercentage <= 0);
+    discountBadge.classList.toggle("hide", discountPercentage <= 0);
 
     document.getElementById("addToCart").dataset.id = this.product.Id;
     document.title = `Sleep Outside | ${formatCategory(this.product.Category || this.dataSource.category)} | ${this.product.Name}`;
@@ -106,7 +106,7 @@ export default class ProductDetails {
     if (hasExtraImages) {
       wrapper.classList.add("carousel-wrapper");
       wrapper.classList.add("carousel-enabled");
-      staticImg.style.display = "none";
+      if (staticImg) staticImg.style.display = "none";
 
       let carouselHTML = `
         <div class="image-carousel-container" id="carouselContainer">
@@ -119,6 +119,8 @@ export default class ProductDetails {
               `).join('')}
             </ul>
           </div>
+          
+          <span id="productDiscountBadge" class="product-detail__discount-badge"></span>
           
           <button class="nav-btn nav-prev" id="prevBtn" aria-label="Previous slide">&lt;</button>
           <button class="nav-btn nav-next" id="nextBtn" aria-label="Next slide">&gt;</button>
