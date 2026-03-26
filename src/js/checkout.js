@@ -4,9 +4,10 @@ import CheckoutProcess from "./CheckoutProcess.mjs";
 loadHeaderFooter();
 
 const process = new CheckoutProcess();
-await process.init();
+process.init().then(() => {
+    process.displaySubtotal("so-cart", ".order-summary");
+})
 
-process.displaySubtotal("so-cart", ".order-summary");
 document.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.target;
