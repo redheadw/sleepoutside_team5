@@ -19,6 +19,32 @@
       <section class="products">
         <h2>Review & Place your Order</h2>
       </section>
+      <section>
+        <div class="order-summary">
+          <p>Subtotal: <span id="order-subtotal"></span></p>
+          <p>Tax: <span id="order-tax"></span></p>
+          <p>Shipping Estimate: <span id="order-shipping"></span></p>
+          <p>Total: <span id="order-total"></span></p>
+        </div>
+        <form>
+          <div>
+            <label>First Name: <input type="text" name="fname" required></label>
+            <label>Last Name: <input type="text" name="lname" required></label>
+          </div>
+          <div>
+            <label>Street Address: <input type="text" name="street" required></label>
+            <label>City: <input type="text" name="city" required></label>
+            <label>State: <input type="text" name="state" required></label>
+            <label>Zip Code: <input type="text" name="zip" required></label>
+          </div>
+          <div>
+            <label>Credit Card number: <input type="text" name="cardNumber" required></label>
+            <label>Expiration Date: <input type="text" name="expiration" required></label>
+            <label>Security Code: <input type="text" name="code" required></label>
+          </div>
+          <input type="submit" value="Checkout">
+        </form>
+      </section>
     </main>
 
     <footer id="main-footer"></footer>

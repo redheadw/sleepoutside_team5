@@ -1,15 +1,6 @@
-import { getLocalStorage, setLocalStorage, loadHeaderFooter } from "./utils.mjs";
-import ProductData from "./ProductData.mjs";
+import { getLocalStorage, setLocalStorage, loadHeaderFooter, getCartContents } from "./utils.mjs";
 
 const MAX_QTY_PER_ITEM = 200;
-const dataSources = {};
-
-function getDataSource(category = "tents") {
-  if (!dataSources[category]) {
-    dataSources[category] = new ProductData(category);
-  }
-  return dataSources[category];
-}
 
 function getProductImage(product) {
   return product.Images?.PrimaryMedium || product.Image;
@@ -18,37 +9,6 @@ function getProductImage(product) {
 async function initCartPage() {
   await loadHeaderFooter();
   await renderCartContents();
-}
-
-async function getCartContents() {
-  let cart = getLocalStorage("so-cart");
-  if (!Array.isArray(cart)) cart = [];
-  const cartItems = await Promise.all(
-    cart.map(async (item) => {
-      const category = item.category || "tents";
-      const product = await getDataSource(category).findProductById(
-        item.productId,
-        category
-      );
-
-      if (!product) {
-        return null;
-      }
-
-      return {
-        product,
-        cartItem: item
-      };
-    })
-  );
-  const validCartItems = cartItems.filter((item) => !!item);
-
-  if (validCartItems.length !== cart.length) {
-    const cleanedCart = validCartItems.map((item) => item.cartItem);
-    setLocalStorage("so-cart", cleanedCart);
-  }
-
-  return validCartItems;
 }
 
 async function renderCartContents() {
