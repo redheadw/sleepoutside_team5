@@ -163,3 +163,41 @@ export async function getCartContents() {
 
   return validCartItems;
 }
+
+export function alertMessage(message, scroll = true) {
+  const existingAlerts = document.querySelectorAll('.alert');
+  existingAlerts.forEach(alert => alert.remove());
+
+  const alert = document.createElement('div');
+  alert.classList.add('alert');
+  alert.role = 'alert';
+
+  const messageSpan = document.createElement('span');
+  messageSpan.textContent = message;
+  messageSpan.classList.add('alert-message');
+
+  const closeBtn = document.createElement('button');
+  closeBtn.classList.add('alert-close');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.setAttribute('aria-label', 'Close alert');
+
+  alert.appendChild(messageSpan);
+  alert.appendChild(closeBtn);
+
+  alert.addEventListener('click', function(e) {
+    if(e.target.classList.contains('alert-close') || e.target.classList.contains('alert')) {
+       const main = document.querySelector('main');
+       if(main) {
+           main.removeChild(this);
+       }
+    }
+  });
+
+  // add the alert to the top of main
+  const main = document.querySelector('main');
+  main.prepend(alert);
+
+  if(scroll) {
+      window.scrollTo(0, 0);
+  }
+}

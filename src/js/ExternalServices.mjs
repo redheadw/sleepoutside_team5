@@ -2,20 +2,19 @@ const baseURL =
   import.meta.env.VITE_SERVER_URL || "https://wdd330-backend.onrender.com/";
 
 async function convertToJson(res) {
-  const contentType = res.headers.get("content-type") || "";
-
-  if (!res.ok) {
-    throw new Error(`Bad Response: ${res.status}`);
-  }
-
-  if (!contentType.includes("application/json")) {
+  let jsonResponse;
+  try {
+    jsonResponse = await res.json();
+  } catch (error) {
     const text = await res.text();
-    throw new Error(
-      `Expected JSON but received ${contentType || "unknown content type"}: ${text.slice(0, 80)}`
-    );
+    throw { name: 'servicesError', message: { status: res.status, body: text } };
   }
 
-  return res.json();
+  if (res.ok) {
+    return jsonResponse;
+  } else {
+    throw { name: 'servicesError', message: jsonResponse };
+  }
 }
 
 export default class ExternalServices {
