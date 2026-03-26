@@ -123,12 +123,12 @@ export function updateCartCount() {
   cartCountElement.classList.remove("hide");
 }
 
-import ProductData from "./ProductData.mjs";
+import ExternalServices from "./ExternalServices.mjs";
 const dataSources = {};
 
 function getDataSource(category = "tents") {
   if (!dataSources[category]) {
-    dataSources[category] = new ProductData(category);
+    dataSources[category] = new ExternalServices(category);
   }
   return dataSources[category];
 }
