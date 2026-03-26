@@ -16,6 +16,10 @@ export function getLocalStorage(key) {
 // save data to local storage
 export function setLocalStorage(key, data) {
   localStorage.setItem(key, JSON.stringify(data));
+
+  if (key === "so-cart") {
+    updateCartCount();
+  }
 }
 
 // set a listener for both touchend and click
@@ -77,6 +81,7 @@ export async function loadHeaderFooter() {
 
     if (headerElement) {
       renderWithTemplate(headerTemplate, headerElement);
+      updateCartCount();
     }
 
     if (footerElement) {
@@ -85,4 +90,35 @@ export async function loadHeaderFooter() {
   } catch (error) {
     console.error("Header/footer load failed:", error);
   }
+}
+
+export function updateCartCount() {
+  const cartCountElement = document.querySelector(".cart-count");
+
+  if (!cartCountElement) {
+    return;
+  }
+
+  let cartItems = getLocalStorage("so-cart");
+
+  if (!Array.isArray(cartItems)) {
+    cartItems = [];
+  }
+
+  const validCartItems = cartItems.filter((item) => {
+    if (!item || !item.productId) {
+      return false;
+    }
+
+    const count = Number.parseInt(item.count, 10);
+    return !Number.isNaN(count) && count > 0;
+  });
+
+  const totalItems = validCartItems.reduce((total, item) => {
+    const count = Number.parseInt(item.count, 10);
+    return total + count;
+  }, 0);
+
+  cartCountElement.textContent = totalItems;
+  cartCountElement.classList.remove("hide");
 }

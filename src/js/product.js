@@ -6,8 +6,9 @@ async function init() {
   await loadHeaderFooter();
 
   const productId = getParam("product");
-  const dataSource = new ProductData();
-  const product = await dataSource.findProductById(productId);
+  const category = getParam("category") || "tents";
+  const dataSource = new ProductData(category);
+  const product = new ProductDetails(productId, dataSource);
 
   const productDetail = new ProductDetails(product);
   productDetail.renderProductDetails();

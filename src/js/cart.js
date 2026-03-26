@@ -1,71 +1,130 @@
 import { getLocalStorage, setLocalStorage, loadHeaderFooter } from "./utils.mjs";
+import ProductData from "./ProductData.mjs";
+
+const MAX_QTY_PER_ITEM = 200;
+const dataSources = {};
+
+function getDataSource(category = "tents") {
+  if (!dataSources[category]) {
+    dataSources[category] = new ProductData(category);
+  }
+  return dataSources[category];
+}
+
+function getProductImage(product) {
+  return product.Images?.PrimaryMedium || product.Image;
+}
 
 async function initCartPage() {
   await loadHeaderFooter();
-  renderCartContents();
+  await renderCartContents();
 }
 
-function renderCartContents() {
-  let cartItems = getLocalStorage("so-cart");
-  if (!Array.isArray(cartItems)) cartItems = [];
+async function getCartContents() {
+  let cart = getLocalStorage("so-cart");
+  if (!Array.isArray(cart)) cart = [];
+  const cartItems = await Promise.all(
+    cart.map(async (item) => {
+      const category = item.category || "tents";
+      const product = await getDataSource(category).findProductById(
+        item.productId,
+        category
+      );
 
-  const cartFooter = document.querySelector(".cart-footer");
-  const productList = document.querySelector(".product-list");
+      if (!product) {
+        return null;
+      }
 
-  
-  if (cartItems.length === 0) {
-    productList.innerHTML = "<li>Your cart is empty.</li>";
-    cartFooter.classList.add("hide");
-    return;
+      return {
+        product,
+        cartItem: item
+      };
+    })
+  );
+  const validCartItems = cartItems.filter((item) => !!item);
+
+  if (validCartItems.length !== cart.length) {
+    const cleanedCart = validCartItems.map((item) => item.cartItem);
+    setLocalStorage("so-cart", cleanedCart);
   }
 
-  
-  const htmlItems = cartItems.map((item) => cartItemTemplate(item));
-  productList.innerHTML = htmlItems.join("");
+  return validCartItems;
+}
+
+async function renderCartContents() {
+  const cartItems = await getCartContents();
+
+  const htmlItems = cartItems.map((item) =>
+    cartItemTemplate(item.product, item.cartItem)
+  );
+  document.querySelector(".product-list").innerHTML = htmlItems.join("");
 
   setupRemoveListeners();
+  setupQuantityChangeListeners();
 
-  cartFooter.classList.remove("hide");
+  await updatePrices();
+}
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.FinalPrice, 0);
-  const totalElement = document.querySelector(".cart-total");
+async function updatePrices() {
+  const cartItems = await getCartContents();
+  const cartFooter = document.querySelector(".cart-footer");
 
-  if (totalElement) {
-    totalElement.textContent = `Total: $${totalPrice.toFixed(2)}`;
+  cartItems.forEach((item) => {
+    const costElement = document.querySelector(
+      `#_${item.product.Id} .cart-card__price`
+    );
+    costElement.textContent =
+      `$${(item.product.FinalPrice * item.cartItem.count).toFixed(2)}`;
+  });
+
+  if (cartItems.length > 0) {
+    cartFooter.classList.remove("hide");
+
+    const price = cartItems.map(
+      (item) => item.product.FinalPrice * item.cartItem.count
+    );
+    const totalPrice = price.reduce((sum, item) => sum + item, 0);
+    const totalElement = document.querySelector(".cart-total");
+
+    if (totalElement) {
+      totalElement.textContent = `Total: $${totalPrice.toFixed(2)}`;
+    }
+
+  } else {
+    cartFooter.classList.add("hide");
   }
 }
 
-function cartItemTemplate(item) {
+function cartItemTemplate(item, inBag) {
+  const category = inBag.category || item.Category || "tents";
   return `
-    <li class="cart-card divider">
-      <a href="/product_pages/index.html?product=${item.Id}" class="cart-card__image">
-        <img src="${item.Image}" alt="${item.Name}" />
+    <li class="cart-card divider" id="_${item.Id}">
+      <a href="/product_pages/index.html?category=${encodeURIComponent(category)}&product=${item.Id}" class="cart-card__image">
+        <img src="${getProductImage(item)}" alt="${item.Name}" />
       </a>
-      <a href="/product_pages/index.html?product=${item.Id}">
+      <a href="/product_pages/index.html?category=${encodeURIComponent(category)}&product=${item.Id}">
         <h2 class="card__name">${item.Name}</h2>
       </a>
       <p class="cart-card__color">${item.Colors[0].ColorName}</p>
-      <p class="cart-card__quantity">qty: 1</p>
-      <p class="cart-card__price">$${item.FinalPrice}</p>
+      <p class="cart-card__quantity">qty: <input type="number" name="quantity" value="${inBag.count}" data-id="${item.Id}" data-category="${category}" min="1" max="${MAX_QTY_PER_ITEM}"></p>
+      <p class="cart-card__price">$${(item.FinalPrice * inBag.count).toFixed(2)}</p>
 
-      <button type="button" class="cart-card__remove" data-id="${item.Id}">
+      <button type="button" class="cart-card__remove" data-id="${item.Id}" data-category="${category}">
         X
       </button>
     </li>
   `;
 }
 
-function removeCartItemFromStorage(id) {
+function removeCartItemFromStorage(id, category) {
   let cartItems = getLocalStorage("so-cart");
   if (!Array.isArray(cartItems)) cartItems = [];
 
-  const itemIndex = cartItems.findIndex((item) => item.Id === id);
+  const updatedCart = cartItems.filter(
+    (item) => !(item.productId === id && (item.category || "tents") === category)
+  );
 
-  if (itemIndex !== -1) {
-    cartItems.splice(itemIndex, 1);
-  }
-
-  setLocalStorage("so-cart", cartItems);
+  setLocalStorage('so-cart', updatedCart);
   renderCartContents();
 }
 
@@ -75,7 +134,51 @@ function setupRemoveListeners() {
   removeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const itemId = button.dataset.id;
-      removeCartItemFromStorage(itemId);
+      const category = button.dataset.category || "tents";
+      removeCartItemFromStorage(itemId, category);
+    });
+  });
+}
+
+function updateCartItemQuantity(id, category, count) {
+  let cartItems = getLocalStorage("so-cart");
+  if (!Array.isArray(cartItems)) cartItems = [];
+  
+  const updatedCartItems = cartItems
+    .map((item) => {
+      if (item.productId !== id || (item.category || "tents") !== category) {
+        return item;
+      }
+
+      return {
+        ...item,
+        count
+      };
+    })
+    .filter((item) => Number.parseInt(item.count, 10) > 0);
+
+  setLocalStorage('so-cart', updatedCartItems);
+}
+
+function setupQuantityChangeListeners() {
+  const quantityInput = document.querySelectorAll(".cart-card__quantity input");
+
+  quantityInput.forEach((button) => {
+    button.addEventListener("change", async () => {
+      const itemId = button.dataset.id;
+      const category = button.dataset.category || "tents";
+      if (button.value > MAX_QTY_PER_ITEM) {
+        button.value = MAX_QTY_PER_ITEM;
+      }
+      if (button.value.includes(".")) {
+        button.value -= button.value % 1;
+      }
+      if (isNaN(button.value)) {
+        button.value = 1;
+      }
+      updateCartItemQuantity(itemId, category, parseInt(button.value));
+      await renderCartContents();
+      await updatePrices();
     });
   });
 }
