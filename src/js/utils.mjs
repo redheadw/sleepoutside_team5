@@ -122,3 +122,44 @@ export function updateCartCount() {
   cartCountElement.textContent = totalItems;
   cartCountElement.classList.remove("hide");
 }
+
+import ProductData from "./ProductData.mjs";
+const dataSources = {};
+
+function getDataSource(category = "tents") {
+  if (!dataSources[category]) {
+    dataSources[category] = new ProductData(category);
+  }
+  return dataSources[category];
+}
+
+export async function getCartContents() {
+  let cart = getLocalStorage("so-cart");
+  if (!Array.isArray(cart)) cart = [];
+  const cartItems = await Promise.all(
+    cart.map(async (item) => {
+      const category = item.category || "tents";
+      const product = await getDataSource(category).findProductById(
+        item.productId,
+        category
+      );
+
+      if (!product) {
+        return null;
+      }
+
+      return {
+        product,
+        cartItem: item
+      };
+    })
+  );
+  const validCartItems = cartItems.filter((item) => !!item);
+
+  if (validCartItems.length !== cart.length) {
+    const cleanedCart = validCartItems.map((item) => item.cartItem);
+    setLocalStorage("so-cart", cleanedCart);
+  }
+
+  return validCartItems;
+}

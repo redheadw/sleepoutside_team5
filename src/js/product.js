@@ -9,9 +9,10 @@ async function init() {
   const category = getParam("category") || "tents";
   const dataSource = new ProductData(category);
   const product = new ProductDetails(productId, dataSource);
+  await product.init();
 
-  const productDetail = new ProductDetails(product);
-  productDetail.renderProductDetails();
+  //const productDetail = new ProductDetails(product);
+  product.renderProductDetails();
 }
 
 init();
