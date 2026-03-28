@@ -123,6 +123,29 @@ export function updateCartCount() {
   cartCountElement.classList.remove("hide");
 }
 
+export function alertMessage(message, scroll = true) {
+  const main = document.querySelector("main");
+
+  if (!main) {
+    return;
+  }
+
+  const alert = document.createElement("div");
+  alert.classList.add("alert");
+  alert.innerHTML = `<span>${message}</span><button type="button" aria-label="Close alert">X</button>`;
+
+  const closeButton = alert.querySelector("button");
+  closeButton.addEventListener("click", () => {
+    alert.remove();
+  });
+
+  main.prepend(alert);
+
+  if (scroll) {
+    window.scrollTo(0, 0);
+  }
+}
+
 import ExternalServices from "./ExternalServices.mjs";
 const dataSources = {};
 
