@@ -14,6 +14,10 @@ function productCardTemplate(product, category) {
         <h2>${product.NameWithoutBrand || product.Name}</h2>
         <p>$${product.FinalPrice}</p>
       </a>
+
+      <button class="quick-view-btn" data-id="${product.Id}">
+        Quick View
+      </button>
     </li>
   `;
 }

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/product-listing.js" type="module"></script>
   </head>
-
+  
   <body>
     <header class="divider" id="main-header"></header>
 
@@ -17,6 +17,20 @@
         <ul class="product-list"></ul>
       </section>
     </main>
+    <div id="quickViewModal" class="modal hide" aria-hidden="true">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+
+        <h3 id="modalBrand"></h3>
+        <h2 id="modalName"></h2>
+
+        <img id="modalImage" src="" alt="Product image" />
+
+        <p id="modalPrice"></p>
+        <p id="modalColor"></p>
+        <p id="modalDescription"></p>
+      </div>
+    </div>
 
     <footer id="main-footer"></footer>
   </body>
