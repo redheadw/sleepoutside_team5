@@ -163,3 +163,34 @@ export async function getCartContents() {
 
   return validCartItems;
 }
+
+export function alertMessage(message, scroll = true) {
+  const main = document.querySelector("main");
+  if (!main) return;
+
+  const existingAlert = document.querySelector(".alert-message");
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+
+  const alert = document.createElement("div");
+  alert.className = "alert-message";
+  alert.innerHTML = `
+    <p>${message}</p>
+    <button class="alert-close" aria-label="Close alert">&times;</button>
+  `;
+
+  alert.querySelector(".alert-close").addEventListener("click", () => {
+    alert.remove();
+  });
+
+  main.prepend(alert);
+
+  if (scroll) {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+}
+

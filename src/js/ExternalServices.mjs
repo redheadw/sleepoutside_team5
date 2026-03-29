@@ -2,20 +2,16 @@ const baseURL =
   import.meta.env.VITE_SERVER_URL || "https://wdd330-backend.onrender.com/";
 
 async function convertToJson(res) {
-  const contentType = res.headers.get("content-type") || "";
+  const jsonResponse = await res.json();
 
-  if (!res.ok) {
-    throw new Error(`Bad Response: ${res.status}`);
+  if (res.ok) {
+    return jsonResponse;
+  } else {
+    throw {
+      name: "servicesError",
+      message: jsonResponse
+    };
   }
-
-  if (!contentType.includes("application/json")) {
-    const text = await res.text();
-    throw new Error(
-      `Expected JSON but received ${contentType || "unknown content type"}: ${text.slice(0, 80)}`
-    );
-  }
-
-  return res.json();
 }
 
 export default class ExternalServices {
@@ -36,5 +32,17 @@ export default class ExternalServices {
   async findProductById(id, category = this.category) {
     const products = await this.getData(category);
     return products.find((item) => item.Id === id);
+  }
+
+  async checkout(order) {
+    const response = await fetch(`${baseURL}checkout/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(order)
+    });
+
+    return convertToJson(response);
   }
 }
