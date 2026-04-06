@@ -1,13 +1,9 @@
 <!doctype html>
-
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Sleep Outside | Checkout</title>
-
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/checkout.js" type="module"></script>
   </head>
@@ -17,8 +13,9 @@
 
     <main class="divider">
       <section class="products">
-        <h2>Review & Place your Order</h2>
+        <h2>Review &amp; Place your Order</h2>
       </section>
+
       <section>
         <div class="order-summary">
           <p>Subtotal: <span id="order-subtotal"></span></p>
@@ -26,23 +23,29 @@
           <p>Shipping Estimate: <span id="order-shipping"></span></p>
           <p>Total: <span id="order-total"></span></p>
         </div>
+
         <form>
           <div>
-            <label>First Name: <input type="text" name="fname" required></label>
-            <label>Last Name: <input type="text" name="lname" required></label>
+            <label>First Name: <input type="text" name="fname" required /></label>
+            <label>Last Name: <input type="text" name="lname" required /></label>
           </div>
+
           <div>
-            <label>Street Address: <input type="text" name="street" required></label>
-            <label>City: <input type="text" name="city" required></label>
-            <label>State: <input type="text" name="state" required></label>
-            <label>Zip Code: <input type="text" name="zip" required></label>
+            <label>Street Address: <input type="text" name="street" required /></label>
+            <label>City: <input type="text" name="city" required /></label>
+            <label>State: <input type="text" name="state" required /></label>
+            <label>Zip Code: <input type="text" name="zip" required /></label>
           </div>
+
           <div>
-            <label>Credit Card number: <input type="text" name="cardNumber" required></label>
-            <label>Expiration Date: <input type="text" name="expiration" required></label>
-            <label>Security Code: <input type="text" name="code" required></label>
+            <label>Credit Card number: <input type="text" name="cardNumber" required /></label>
+            <label>Expiration Date: <input type="text" name="expiration" required /></label>
+            <label>Security Code: <input type="text" name="code" required /></label>
           </div>
-          <input type="submit" value="Checkout">
+
+          <div class="checkout-errors"></div>
+
+          <input type="submit" value="Checkout" />
         </form>
       </section>
     </main>

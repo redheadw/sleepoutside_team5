@@ -781,3 +781,29 @@ label:hover {
   margin-top: 0.75rem;
   width: 100%;
 }
+
+.alert-message {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  border-radius: 5px;
+}
+
+.alert-message p {
+  margin: 0;
+  padding-right: 2rem;
+}
+
+.alert-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: inherit;
+}
