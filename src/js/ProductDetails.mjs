@@ -1,5 +1,19 @@
 import { getLocalStorage, setLocalStorage } from "./utils.mjs";
 
+function animateCartIcon() {
+  const cartIcon = document.querySelector(".cart, .cart-icon, #cart");
+
+  if (!cartIcon) return;
+
+  cartIcon.classList.remove("animate-cart");
+  void cartIcon.offsetWidth;
+  cartIcon.classList.add("animate-cart");
+
+  setTimeout(() => {
+    cartIcon.classList.remove("animate-cart");
+  }, 400);
+}
+
 function getProductImage(product) {
   return product.Images?.PrimaryLarge || product.Image;
 }
@@ -64,6 +78,7 @@ export default class ProductDetails {
       item[0].count++;
     }
     setLocalStorage("so-cart", cart);
+    animateCartIcon();
   }
 
   renderProductDetails() {

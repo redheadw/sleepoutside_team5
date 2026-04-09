@@ -160,6 +160,16 @@ button {
   fill: gray;
 }
 
+@keyframes cartBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.animate-cart {
+  animation: cartBounce 0.4s ease;
+}
+
 /* End cart icon styles */
 
 .mission {
