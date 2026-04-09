@@ -1,6 +1,10 @@
-import { getCartContents } from "./utils.mjs";
+import ExternalServices from "./ExternalServices.mjs";
+import { alertMessage, getCartContents } from "./utils.mjs";
 
 export default class CheckoutProcess {
+    constructor() {
+        this.externalServices = new ExternalServices();
+    }
     displaySubtotal(key, outputSelector) {
         this.key = key;
         this.outputSelector = outputSelector;
@@ -63,41 +67,41 @@ export default class CheckoutProcess {
         return convertedJSON;
     }
     async checkout(form) {
-        const formData = this.formDataToJSON(form);
-
-        const items = this.packageItems(await getCartContents(this.key));
-        const orderData = {
-            orderDate: new Date().toISOString(),
-            fname: formData.fname,
-            lname: formData.lname,
-            street: formData.street,
-            city: formData.city,
-            state: formData.state,
-            zip: formData.zip,
-            cardNumber: "1234123412341234",
-            expiration: formData.expiration,
-            code: "123",
-            items: items,
-            orderTotal: this.orderTotal.toFixed(2),
-            shipping: this.shipping,
-            tax: this.tax.toFixed(2)
-        };
-
-        const url = "/checkout";
-        const options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(orderData)
-        };
-
         try {
-            const response = await fetch(url, options);
+            const formData = this.formDataToJSON(form);
+            const items = this.packageItems(await getCartContents(this.key));
+            const orderData = {
+                orderDate: new Date().toISOString(),
+                fname: formData.fname,
+                lname: formData.lname,
+                street: formData.street,
+                city: formData.city,
+                state: formData.state,
+                zip: formData.zip,
+                cardNumber: formData.cardNumber,
+                expiration: formData.expiration,
+                code: formData.code,
+                items: items,
+                orderTotal: this.orderTotal.toFixed(2),
+                shipping: this.shipping,
+                tax: this.tax.toFixed(2)
+            };
+
+            const response = await this.externalServices.checkout(orderData);
+            localStorage.removeItem("so-cart");
+            window.location.assign("/checkout/success.html");
             return response;
-        } catch (error) {
-            console.error("Error during checkout:", error);
-            throw error;
+        } catch (err) {
+            console.error(err);
+
+            const message = typeof err.message === "string"
+                ? err.message
+                : err.message?.message ||
+                  err.message?.Message ||
+                  err.message?.error ||
+                  "There was a problem placing your order. Please check your information and try again.";
+
+            alertMessage(message);
         }
     }
 }

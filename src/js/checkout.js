@@ -8,15 +8,15 @@ process.init().then(() => {
     process.displaySubtotal("so-cart", ".order-summary");
 })
 
-document.querySelector("form").addEventListener("submit", async (event) => {
+const checkoutForm = document.forms["checkout"] || document.querySelector("form");
+
+checkoutForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const form = event.target;
-    try {
-        const response = await process.checkout(form);
+    const isValid = checkoutForm.checkValidity();
 
-        console.log('Checkout response:', response);
+    checkoutForm.reportValidity();
 
-    } catch (error) {
-        console.error('Checkout error:', error);
+    if (isValid) {
+        await process.checkout(checkoutForm);
     }
 });
